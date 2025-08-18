@@ -35,8 +35,12 @@ class inputController{
         this.bindActions(actionsToBind);
     }
 
-    onKeyDown(e){
+    onKeyDown(e) {
+        console.log(this.keysActive.size)
         if(!this.focused || !this.enabled) return;
+        if (this.keysActive.has(e.keyCode)) return;
+        if (this.keysActive.size >0) return;
+
         if (!this.keysActive.has(e.keyCode))
             this.keysActive.add(e.keyCode);
         

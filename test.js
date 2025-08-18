@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('attach').addEventListener('click', () => {
         if (!controller.enabled)
-        controller.attach(element, true);
+            controller.attach(element, true);
         else controller.attach(element);
         document.getElementById('status').textContent = 'attached';
     });
