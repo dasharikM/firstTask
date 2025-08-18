@@ -64,9 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('status').textContent = '+ " space"';
     })
 
-    // Проверка активности
+    /* // Проверка активности
     setInterval(() => {
         console.log('left:', controller.isActionActive('left'));
         console.log('right:', controller.isActionActive('right'));
-    }, 500);
+    }, 500); */
 });
