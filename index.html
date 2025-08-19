@@ -11,33 +11,31 @@
             display: flex; 
             flex-direction: column; 
         }
-
-        .color-r{
-            background-color: red;
-        }
         .color-g{
             background-color: green;
+            color:white;
         }
-        .color-y{
-            background-color: yellow;
-        }
-        .color-b{
-            background-color: blue;
+        .color-r{
+            background-color: red;
+            color:white;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div style="display: flex;">
-            <input type="text" id="element" class="element " style="transform: translateX(0px);" readonly>
+            <input type="text" tabindex="0" id="element" class="element " style="transform: translateX(0px);" readonly>
         </div>
         <div style="display:flex;"><div>
             <div id="status">***</div>
+            <div id="pluginMouse">мышь ВЫКЛ</div>
             <button id="attach">аттач к элементу DOM</button>
             <button id="detach">детач от элемента DOM</button>
             <button id="activation">активация контроллера</button>
             <button id="deactivation">деактивация контроллера</button>
             <button id="plusActivity">байнд доп. активности “прыжок” на кнопку “пробел”</button>
+            <button id="mouse" class="color-g">вкл мышь</button>
+            <button id="mouseOff" class="color-r">выкл мышь</button>
         </div>
     </div>
 

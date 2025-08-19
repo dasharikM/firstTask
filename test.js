@@ -1,16 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
     const element = document.getElementById('element');
-    const colors= ['color-r', 'color-b', 'color-y', 'color-g'];
+    const mouse = document.getElementById('mouse');
+    const mouseOff = document.getElementById('mouseOff');
 
-    function getRandomNumber(min,max){
-        return Math.floor(Math.random() * (max - min + 1)) + min
-    }
-
-    console.log(element.textContent)
     const controller = new inputController({
-        left: { keys: [37, 65], enabled: true },
-        right: { keys: [39, 68], enabled: true }
+        left: { keys: [37, 65], mouseButton: 'left', enabled: true },
+        right: { keys: [39, 68], mouseButton: 'right',  enabled: true }
     }, element);
+
+    mouse.addEventListener('click', ()=>{
+        controller.turnMouseOn();
+        document.getElementById('pluginMouse').textContent = 'мышь ВКЛ';
+    });
+
+    mouseOff.addEventListener('click', ()=>{
+        controller.turnMouseOff();
+        document.getElementById('pluginMouse').textContent = 'мышь ВЫКЛ';
+    });
+
 
     element.addEventListener(inputController.ACTION_ACTIVATED, (e) => {
         console.log('Activated:', e.detail.act);
@@ -22,10 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let position = element.style.transform.slice(11,-3);
             element.style.transform = 'translateX('+ (parseInt(position) - 10) + 'px)';
         }
-       /*  else if(e.detail.act === 'space'){
-            element.className = 'element ';
-            element.className += colors[getRandomNumber(0,colors.length-1)];
-        } */
     });
 
     element.addEventListener(inputController.ACTION_DEACTIVATED, (e) => {
@@ -34,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     document.getElementById('attach').addEventListener('click', () => {
+        console.log(controller.enabled)
         if (!controller.enabled)
             controller.attach(element, true);
         else controller.attach(element);
