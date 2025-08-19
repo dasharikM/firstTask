@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const colors= ['color-r', 'color-b', 'color-y', 'color-g'];
 
     function getRandomNumber(min,max){
-        
         return Math.floor(Math.random() * (max - min + 1)) + min
     }
 
@@ -23,10 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let position = element.style.transform.slice(11,-3);
             element.style.transform = 'translateX('+ (parseInt(position) - 10) + 'px)';
         }
-        else if(e.detail.act === 'space'){
+       /*  else if(e.detail.act === 'space'){
             element.className = 'element ';
             element.className += colors[getRandomNumber(0,colors.length-1)];
-        }
+        } */
     });
 
     element.addEventListener(inputController.ACTION_DEACTIVATED, (e) => {

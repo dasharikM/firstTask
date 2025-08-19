@@ -36,10 +36,15 @@ class inputController {
     onKeyDown(e) {
         if (!this.focused || !this.enabled) return;
 
-        // Если клавиша уже зажата — выходим (двойное нажатие)
+        // двойное нажатие
         if (this.keysActive.has(e.keyCode)) return;
 
         this.keysActive.add(e.keyCode);
+
+        if(this.actionsKeys.has(e.keyCode) && e.keyCode === 32){
+            let element = document.getElementById('element');
+            element.className = 'element color-g';
+        }
 
         const listActionsName = this.actionsKeys.get(e.keyCode);
         if (listActionsName) {
@@ -47,13 +52,11 @@ class inputController {
                 const action = this.actions.get(actionName);
                 if (!action || !action.enabled) continue;
 
-                // Проверяем, активно ли уже это действие
+              
                 const wasActive = this.activeActions.has(actionName);
 
-                // Всё равно добавляем действие в активные (если клавиша нажата)
                 this.activeActions.add(actionName);
 
-                // Если действие только что стало активным — генерируем событие
                 if (!wasActive) {
                     const event = new CustomEvent(inputController.ACTION_ACTIVATED, {
                         detail: { act: actionName }
@@ -68,6 +71,12 @@ class inputController {
         if (!this.focused || !this.enabled) return;
 
         if (!this.keysActive.has(e.keyCode)) return;
+
+        if( this.actionsKeys.has(e.keyCode) && e.keyCode == 32){
+            let element = document.getElementById('element');
+            element.className = 'element ';
+        }
+        
         this.keysActive.delete(e.keyCode);
 
         const listActionsName = this.actionsKeys.get(e.keyCode);
@@ -76,12 +85,10 @@ class inputController {
                 const action = this.actions.get(actionName);
                 if (!action || !action.enabled) continue;
 
-                // Проверяем, остались ли другие зажатые клавиши, привязанные к этому действию
                 const otherKeysStillPressed = action.keys.some(key => 
                     key !== e.keyCode && this.keysActive.has(key)
                 );
 
-                // Если других клавиш нет — действие больше не активно
                 if (!otherKeysStillPressed) {
                     this.activeActions.delete(actionName);
 
@@ -112,6 +119,7 @@ class inputController {
                 }
             }
         }
+
     }
 
     enableAction(actionName) {
@@ -126,7 +134,7 @@ class inputController {
         if (action) {
             action.enabled = false;
 
-            // Если действие отключено, и оно было активно — деактивируем
+            // действие отключено, было активно — деактивируем
             if (this.activeActions.has(actionName)) {
                 this.activeActions.delete(actionName);
                 const event = new CustomEvent(inputController.ACTION_DEACTIVATED, {
@@ -160,7 +168,7 @@ class inputController {
         }
 
         this.keysActive.clear();
-        this.activeActions.clear(); // важно: очистить активные действия
+        this.activeActions.clear();
     }
 
     isKeyPressed(key) {
