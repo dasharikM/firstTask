@@ -27,17 +27,14 @@ class MousePlugin extends Plugin{
     }
     attach(target){
         this.target = target;
-
-        target.addEventListener('mousedown', this.mouseDown);
-        target.addEventListener('mouseup', this.mouseUp);
-        target.addEventListener('contextmenu', this.contextMenu);
+        this.target.addEventListener('keydown', this.onKeyDown);
+        this.target.addEventListener('keyup', this.onKeyUp);
     }
 
-    detach(){
-        if(this.target){
-            this.target.removeEventListener('mousedown', this.mouseDown);
-            this.target.removeEventListener('mouseup', this.mouseUp);
-            this.target.removeEventListener('contextmenu', this.contextMenu);
+    detach() {
+        if (this.target) {
+            this.target.removeEventListener('keydown', this.onKeyDown);
+            this.target.removeEventListener('keyup', this.onKeyUp);
             this.target = null;
         }
     }
@@ -434,26 +431,16 @@ class InputController {
     
     onKeyDown(e) {
         if (!this.focused || !this.enabled) return;
-        
-        // двойное нажатие
-        if (this.keysActive.has(e.keyCode)) return;
-        
-        this.keysActive.add(e.keyCode);
-        
-        if(this.actionsKeys.has(e.keyCode) && e.keyCode === 32){
-            let element = document.getElementById('element');
-            element.className = 'element color-g';
-        }
-        
-        const listActionsName = this.actionsKeys.get(e.keyCode);
-        if (listActionsName) {
-            for (const actionName of listActionsName) {
-                const action = this.actions.get(actionName);
-                if (!action || !action.enabled) continue;
-                
-                
-                const wasActive = this.activeActions.has(actionName);
-                
+
+        const action = this.actions.get(actionName);
+        if (!action || !action.enabled) return;
+
+        const inputKey = `${plugin.constructor.name}_${keyCode}`;
+
+        if (isPressed) {
+            this.activeInputs.add(inputKey);
+
+            if (!this.activeActions.has(actionName)) {
                 this.activeActions.add(actionName);
                 
                 if (!wasActive) {
@@ -502,3 +489,4 @@ class InputController {
     } */
     
 }
+
