@@ -27,19 +27,19 @@ class MousePlugin extends Plugin{
     }
     attach(target){
         this.target = target;
-        this.target.addEventListener('keydown', this.onKeyDown);
-        this.target.addEventListener('keyup', this.onKeyUp);
+        this.target.addEventListener('mousedown', this.mouseDown);
+        this.target.addEventListener('mouseup', this.mouseUp);
     }
 
     detach() {
         if (this.target) {
-            this.target.removeEventListener('keydown', this.onKeyDown);
-            this.target.removeEventListener('keyup', this.onKeyUp);
+            this.target.removeEventListener('mousedown', this.mouseDown);
+            this.target.removeEventListener('mouseup', this.mouseUp);
             this.target = null;
         }
     }
 
-    getActionNameByKey(keyCodeStr) {
+   /*  getActionNameByKey(keyCodeStr) {
         // keyCodeStr: например, "Mouse_2"
         const match = /^MousePlugin_(\d+)$/.exec(keyCodeStr);
         if (!match) return null;
@@ -48,12 +48,10 @@ class MousePlugin extends Plugin{
         if (button === 0) return 'left';
         if (button === 2) return 'right';
         return null;
-    }
+    } */
 
     getActionName(e) {
-        if (e.button === 0) return 'left';
-        if (e.button === 2) return 'right';
-        return null;
+       return this.controller._getActionByMouseCode(e.button);
     }
 
     getKeyCode(e){
@@ -157,7 +155,6 @@ class InputController {
     constructor(actionsToBind = null, target = null) {
         this.focused = document.hasFocus();
         this.enabled = true;
-
         
         this.actions = new Map();     
         this.actionsKeys = new Map();       
@@ -169,6 +166,7 @@ class InputController {
         if (actionsToBind) {
             this.bindActions(actionsToBind);
         }
+        console.log(this.actions)
         
         this.use(KeyBoardPlugin);
         
@@ -240,10 +238,22 @@ class InputController {
         }
         return null;
     }
+
+    _getActionByMouseCode(button){
+        for (let [action, config] of this.actions){
+            let buttons = config.mouseButtons;
+
+            if (buttons && buttons.includes(button))
+                return action;
+        }
+        return null;
+    }
+
     
     _isStillAlive(actionName){
         
         let action = this.actions.get(actionName);
+        console.log(action)
         if(!action) return;
         
         let keys = action.keys.some(key=>{
@@ -254,7 +264,12 @@ class InputController {
             return true;
         }
 
-        for (const inputKey of this.activeInputs) {
+        let mouseButtons = action.mouseButtons.some(button=>{
+            return this.activeInputs.has(`MousePlugin_${button}`);
+        });
+        if (mouseButtons) return true;
+
+        /* for (const inputKey of this.activeInputs) {
 
             for (const plugin of this.plugins) {
                 const pluginName = plugin.constructor.name;
@@ -266,7 +281,7 @@ class InputController {
                     }
                 }
             }
-        }
+        } */
         return false;
     }
     
@@ -328,10 +343,12 @@ class InputController {
         
         for (const [actionName, config] of Object.entries(actionsToBind)) {
             const keys = config.keys || [];
+            const mouseButtons = config.mouseButtons;
+            console.log(mouseButtons)
             const enabled = config.enabled !== false; // по умолчанию true
             
             if (!this.actions.has(actionName)) {
-                this.actions.set(actionName, { keys, enabled });
+                this.actions.set(actionName, { keys, mouseButtons, enabled });
                 
                 for (const key of keys) {
                     if (!this.actionsKeys.has(key)) {
