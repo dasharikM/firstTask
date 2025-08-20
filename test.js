@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('plusActivity').addEventListener('click', () => {
         controller.bindActions({
-            space: { keys: [32], mouseButtons: [], enabled: true }
+            space: { keys: [32, 39], mouseButtons: [], enabled: true }
         });
         document.getElementById('status').textContent = '+ "space"';
     });

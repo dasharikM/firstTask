@@ -3,9 +3,11 @@ class Plugin{
     constructor(){
         this.controller = null;
         this.target = null;
+        this.actions = null;
     }
     init(controller){
         this.controller = controller; 
+        this.actions = controller.actions
     }
 
     attach(target){}
@@ -15,6 +17,25 @@ class Plugin{
     getActionName(event){}
 
     getKeyCode(e){}
+
+    getActionByCode(code, field) {
+        if (!this.actions || !field) return null;
+
+        const entries = this.actions instanceof Map 
+            ? this.actions.entries() 
+            : Object.entries(this.actions);
+
+        let actions = [];
+
+        for (let [action, config] of entries) {
+            const values = config[field];
+            if (values && Array.isArray(values) && values.includes(code)) {
+                actions.push(action);
+            }
+        }
+        if (actions.length!==0) return actions;
+        return null;
+    }
 }
 
 class MousePlugin extends Plugin{
@@ -39,19 +60,8 @@ class MousePlugin extends Plugin{
         }
     }
 
-   /*  getActionNameByKey(keyCodeStr) {
-        // keyCodeStr: например, "Mouse_2"
-        const match = /^MousePlugin_(\d+)$/.exec(keyCodeStr);
-        if (!match) return null;
-        const button = Number(match[1]);
-
-        if (button === 0) return 'left';
-        if (button === 2) return 'right';
-        return null;
-    } */
-
     getActionName(e) {
-       return this.controller._getActionByMouseCode(e.button);
+       return this.getActionByCode(e.button, 'mouseButtons');
     }
 
     getKeyCode(e){
@@ -69,7 +79,8 @@ class MousePlugin extends Plugin{
         if(actionName){
             e.preventDefault();
 
-            this.controller._recordNewAction(this, actionName, e.button, true);
+            for(let name of actionName)
+                this.controller._recordNewAction(this, name, e.button, true);
 
         }
 
@@ -82,8 +93,9 @@ class MousePlugin extends Plugin{
         let actionName = this.getActionName(e);
         if(actionName){
             e.preventDefault();
-
-            this.controller._recordNewAction(this, actionName, e.button, false);
+            
+            for(let name of actionName)
+                this.controller._recordNewAction(this, name, e.button, false);
         }
 
     }
@@ -112,7 +124,7 @@ class KeyBoardPlugin extends Plugin{
     }
 
     getActionName(e){
-        return this.controller._getActionByCode(e.keyCode);
+        return this.getActionByCode(e.keyCode, 'keys');
     }
 
     getKeyCode(e){
@@ -127,22 +139,26 @@ class KeyBoardPlugin extends Plugin{
             this.controller.target.focus();
         }
 
-
         if(actionName){
-            if(actionName == 'space'){
-                document.getElementById('element').className = 'element color-g';
+            for(let name of actionName){
+                if(name == 'space'){
+                    document.getElementById('element').className = 'element color-g';
+                }
+                this.controller._recordNewAction(this, name, e.keyCode, true);
+
             }
-            this.controller._recordNewAction(this, actionName, e.keyCode, true);
         }
     }
     handleOnKeyUp(e){
         let actionName = this.getActionName(e);
         if(actionName){
 
-            if(actionName == 'space'){
-                document.getElementById('element').className = 'element';
+            for(let name of actionName){
+                if(name == 'space'){
+                    document.getElementById('element').className = 'element';
+                }
+                this.controller._recordNewAction(this, name, e.keyCode, false);
             }
-            this.controller._recordNewAction(this, actionName, e.keyCode, false);
         }
     }
 }
@@ -166,7 +182,6 @@ class InputController {
         if (actionsToBind) {
             this.bindActions(actionsToBind);
         }
-        console.log(this.actions)
         
         this.use(KeyBoardPlugin);
         
@@ -196,7 +211,6 @@ class InputController {
         
         let action = this.actions.get(actionName);
         if( !action || !action.enabled) return;
-        /* console.log(this.activeInputs) */
         
         let inputKey =  `${plugin.constructor.name}_${keyCode}`;
         
@@ -213,10 +227,8 @@ class InputController {
         }
         else{
             this.activeInputs.delete(inputKey);
-            /* console.log(this.activeInputs) */
             
             let isStillAlive = this._isStillAlive(actionName);
-            /* console.log(isStillAlive) */
             
 
             if(!isStillAlive && this.activeActions.has(actionName)){
@@ -229,31 +241,11 @@ class InputController {
             
         }
     }
-    _getActionByCode(keyCode) {
-        for (let [action, config] of this.actions){
-            let keys = config.keys;
-
-            if(keys && keys.includes(keyCode))
-                return action;
-        }
-        return null;
-    }
-
-    _getActionByMouseCode(button){
-        for (let [action, config] of this.actions){
-            let buttons = config.mouseButtons;
-
-            if (buttons && buttons.includes(button))
-                return action;
-        }
-        return null;
-    }
-
     
+
     _isStillAlive(actionName){
         
         let action = this.actions.get(actionName);
-        console.log(action)
         if(!action) return;
         
         let keys = action.keys.some(key=>{
@@ -269,19 +261,6 @@ class InputController {
         });
         if (mouseButtons) return true;
 
-        /* for (const inputKey of this.activeInputs) {
-
-            for (const plugin of this.plugins) {
-                const pluginName = plugin.constructor.name;
-                if (inputKey.startsWith(`${pluginName}_`)) {
-
-                    const actionForInput = plugin.getActionNameByKey?.(inputKey);
-                    if (actionForInput === actionName) {
-                        return true;
-                    }
-                }
-            }
-        } */
         return false;
     }
     
@@ -324,7 +303,6 @@ class InputController {
             for (const [actionName, actionConfig] of this.actions) {
                 this.enableAction(actionName);
             }
-
         }
 
     }
@@ -344,7 +322,6 @@ class InputController {
         for (const [actionName, config] of Object.entries(actionsToBind)) {
             const keys = config.keys || [];
             const mouseButtons = config.mouseButtons;
-            console.log(mouseButtons)
             const enabled = config.enabled !== false; // по умолчанию true
             
             if (!this.actions.has(actionName)) {
@@ -358,7 +335,7 @@ class InputController {
                 }
             }
         }
-        
+        console.log(this.actionsKeys);
     }
     
     enableAction(actionName) {
